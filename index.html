@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelAI - Matrix Security</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar { transition: transform 0.3s ease; }
+        .sidebar-hidden { transform: translateX(-100%); }
+        .card { 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            backdrop-filter: blur(10px); 
+            position: relative; 
+            overflow: hidden; 
+        }
+        .card::before { 
+            content: ''; 
+            position: absolute; 
+            top: -100%; 
+            left: 0; 
+            width: 100%; 
+            height: 2px; 
+            background: rgba(74, 222, 128, 0.7); 
+            animation: scan 4s infinite; 
+        }
+        .card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.7); 
+        }
+        .btn { 
+            transition: all 0.3s ease; 
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5); 
+        }
+        .btn:hover { 
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.8); 
+            background-color: #ec4899; 
+        }
+        @keyframes scan {
+            0% { top: -100%; }
+            50% { top: 100%; }
+            100% { top: 100%; }
+        }
+        .matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .matrix-char {
+            position: absolute;
+            color: rgba(74, 222, 128, 0.7);
+            font-family: monospace;
+            font-size: 16px;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-100vh); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+        .neon-text { 
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.7), 0 0 20px rgba(236, 72, 153, 0.4); 
+        }
+        .logo-text::after { 
+            content: '_'; 
+            animation: blink 0.5s infinite; 
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-mono">
+    <!-- Matrix Background -->
+    <div class="matrix" id="matrix"></div>
+
+    <!-- Header -->
+    <header class="bg-black/70 p-4 flex justify-between items-center backdrop-blur-md">
+        <div class="flex items-center">
+            <i class="fas fa-lock text-green-400 text-3xl mr-2 neon-text"></i>
+            <h1 class="text-2xl font-bold text-white neon-text logo-text">SentinelAI</h1>
+        </div>
+        <div id="clock" class="text-green-400 neon-text"></div>
+        <button id="toggleSidebar" class="md:hidden text-green-400 focus:outline-none">
+            <i class="fas fa-bars text-xl neon-text"></i>
+        </button>
+    </header>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar w-64 bg-black/70 p-4 fixed h-full sidebar-hidden md:translate-x-0 backdrop-blur-md">
+            <h2 class="text-xl font-bold mb-4 text-green-400 neon-text">Menu</h2>
+            <a href="/settings" class="block py-2 px-4 hover:bg-gray-900 rounded flex items-center text-white">
+                <i class="fas fa-cog mr-2 text-green-400"></i> Settings
+            </a>
+            <a href="/debug" class="block py-2 px-4 hover:bg-gray-900 rounded flex items-center text-white">
+                <i class="fas fa-bug mr-2 text-green-400"></i> Database Debug
+            </a>
+            <form id="feedbackForm" class="mt-4">
+                <textarea name="feedback" placeholder="Enter feedback" class="w-full p-2 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                <button type="submit" class="mt-2 bg-green-500 hover:bg-pink-500 text-black py-2 px-4 rounded w-full flex items-center justify-center btn">
+                    <i class="fas fa-paper-plane mr-2"></i> Submit Feedback
+                </button>
+            </form>
+            <div class="mt-4">
+                <label for="theme" class="block text-green-400 neon-text">Theme:</label>
+                <select id="theme" onchange="changeTheme(this.value)" class="w-full p-2 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="matrix">Matrix</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6 ml-0 md:ml-64">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-5xl font-bold text-green-400 mb-8 text-center neon-text">Matrix Security Dashboard</h1>
+
+                <!-- Phone Number Lookup -->
+                <div class="bg-black/70 p-6 rounded-lg card mb-6 border border-green-500">
+                    <h2 class="text-2xl font-semibold mb-4 text-green-400 flex items-center neon-text">
+                        <i class="fas fa-phone-alt mr-2 text-pink-400"></i> Phone Number Lookup
+                    </h2>
+                    <form action="/analyze_phone" method="POST">
+                        <input type="text" name="phone_number" placeholder="Enter phone number (e.g., 9845123760)" required
+                               class="w-full p-3 border rounded mb-4 bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <button type="submit" class="bg-green-500 hover:bg-pink-500 text-black py-2 px-4 rounded btn w-full flex items-center justify-center">
+                            <i class="fas fa-search mr-2"></i> Lookup
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Message Analysis -->
+                <div class="bg-black/70 p-6 rounded-lg card mb-6 border border-green-500">
+                    <h2 class="text-2xl font-semibold mb-4 text-green-400 flex items-center neon-text">
+                        <i class="fas fa-comment-alt mr-2 text-pink-400"></i> Message Analysis
+                    </h2>
+                    <form action="/analyze_message" method="POST">
+                        <textarea name="sms_text" placeholder="Enter message text" required
+                                  class="w-full p-3 border rounded mb-4 bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                        <button type="submit" class="bg-green-500 hover:bg-pink-500 text-black py-2 px-4 rounded btn w-full flex items-center justify-center">
+                            <i class="fas fa-check-circle mr-2"></i> Analyze
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Document Upload -->
+                <div class="bg-black/70 p-6 rounded-lg card mb-6 border border-green-500">
+                    <h2 class="text-2xl font-semibold mb-4 text-green-400 flex items-center neon-text">
+                        <i class="fas fa-file-upload mr-2 text-pink-400"></i> CSV/Excel Data Upload
+                    </h2>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <input type="file" name="file" accept=".csv,.xlsx" required
+                               class="w-full p-3 border rounded mb-4 bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <button type="submit" class="bg-green-500 hover:bg-pink-500 text-black py-2 px-4 rounded btn w-full flex items-center justify-center">
+                            <i class="fas fa-upload mr-2"></i> Upload
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Document Search -->
+                <div class="bg-black/70 p-6 rounded-lg card border border-green-500">
+                    <h2 class="text-2xl font-semibold mb-4 text-green-400 flex items-center neon-text">
+                        <i class="fas fa-search mr-2 text-pink-400"></i> Document Data Search
+                    </h2>
+                    <form action="/search_document" method="POST">
+                        <input type="text" name="search_term" placeholder="Enter search term (e.g., Christopher Berry)" required
+                               class="w-full p-3 border rounded mb-4 bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <select name="search_type" class="w-full p-3 border rounded mb-4 bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="phone_number">Phone Number</option>
+                            <option value="name">Name</option>
+                            <option value="address">Address</option>
+                        </select>
+                        <button type="submit" class="bg-green-500 hover:bg-pink-500 text-black py-2 px-4 rounded btn w-full flex items-center justify-center">
+                            <i class="fas fa-search mr-2"></i> Search
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createMatrix() {
+            const matrixContainer = document.getElementById('matrix');
+            const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            for (let i = 0; i < 50; i++) {
+                const char = document.createElement('div');
+                char.className = 'matrix-char';
+                char.textContent = chars.charAt(Math.floor(Math.random() * chars.length));
+                char.style.left = `${Math.random() * 100}%`;
+                char.style.animationDuration = `${Math.random() * 5 + 5}s`;
+                char.style.animationDelay = `${Math.random() * 5}s`;
+                matrixContainer.appendChild(char);
+            }
+        }
+        createMatrix();
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function changeTheme(theme) {
+            const body = document.body;
+            if (theme === 'light') {
+                body.classList.remove('bg-black', 'text-white');
+                body.classList.add('bg-gray-100', 'text-black');
+            } else if (theme === 'matrix') {
+                body.classList.remove('bg-gray-100', 'text-black');
+                body.classList.add('bg-black', 'text-white');
+            } else {
+                body.classList.remove('bg-gray-100', 'text-black');
+                body.classList.add('bg-gray-900', 'text-gray-300');
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/upload_file', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            alert(result.message);
+        });
+
+        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/feedback', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            alert('Feedback submitted: ' + JSON.stringify(result));
+        });
+
+        document.getElementById('toggleSidebar').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-hidden');
+        });
+    </script>
+</body>
+</html>

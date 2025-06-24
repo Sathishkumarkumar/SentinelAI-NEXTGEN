@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - SentinelAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .card { 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            backdrop-filter: blur(10px); 
+            position: relative; 
+            overflow: hidden; 
+        }
+        .card::before { 
+            content: ''; 
+            position: absolute; 
+            top: -100%; 
+            left: 0; 
+            width: 100%; 
+            height: 2px; 
+            background: rgba(74, 222, 128, 0.7); 
+            animation: scan 4s infinite; 
+        }
+        .card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.7); 
+        }
+        .btn { 
+            transition: all 0.3s ease; 
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5); 
+        }
+        .btn:hover { 
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.8); 
+            background-color: #ec4899; 
+        }
+        @keyframes scan {
+            0% { top: -100%; }
+            50% { top: 100%; }
+            100% { top: 100%; }
+        }
+        .matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .matrix-char {
+            position: absolute;
+            color: rgba(74, 222, 128, 0.7);
+            font-family: monospace;
+            font-size: 16px;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-100vh); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+        .neon-text { 
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.7), 0 0 20px rgba(236, 72, 153, 0.4); 
+        }
+        .logo-text::after { 
+            content: '_'; 
+            animation: blink 0.5s infinite; 
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-mono">
+    <!-- Matrix Background -->
+    <div class="matrix" id="matrix"></div>
+
+    <!-- Header -->
+    <header class="bg-black/70 p-4 flex justify-between items-center backdrop-blur-md">
+        <div class="flex items-center">
+            <i class="fas fa-lock text-green-400 text-3xl mr-2 neon-text"></i>
+            <h1 class="text-2xl font-bold text-white neon-text logo-text">SentinelAI</h1>
+        </div>
+        <a href="/" class="text-green-400 hover:text-pink-400">
+            <i class="fas fa-home text-xl neon-text"></i>
+        </a>
+    </header>
+
+    <div class="container mx-auto p-6">
+        <h1 class="text-5xl font-bold text-green-400 mb-8 text-center flex items-center justify-center neon-text">
+            <i class="fas fa-cog mr-2 text-pink-400"></i> Settings
+        </h1>
+        <div class="bg-black/70 p-6 rounded-lg card border border-green-500">
+            <h2 class="text-2xl font-semibold mb-4 text-green-400 flex items-center neon-text">
+                <i class="fas fa-tools mr-2 text-pink-400"></i> Customize Your Experience
+            </h2>
+            <form id="settingsForm">
+                <div class="mb-4">
+                    <label for="theme" class="block text-green-400 neon-text">Theme</label>
+                    <select id="theme" name="theme" class="w-full p-3 border rounded bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="matrix">Matrix</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="language" class="block text-green-400 neon-text">Language</label>
+                    <select id="language" name="language" class="w-full p-3 border rounded bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="English">English</option>
+                        <option value="Tamil">Tamil</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-green-500 hover:bg-pink-500 text-black py-2 px-4 rounded btn w-full flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i> Save Settings
+                </button>
+            </form>
+            <a href="/" class="mt-6 inline-block bg-green-500 hover:bg-pink-500 text-black py-2 px-4 rounded btn flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function createMatrix() {
+            const matrixContainer = document.getElementById('matrix');
+            const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            for (let i = 0; i < 50; i++) {
+                const char = document.createElement('div');
+                char.className = 'matrix-char';
+                char.textContent = chars.charAt(Math.floor(Math.random() * chars.length));
+                char.style.left = `${Math.random() * 100}%`;
+                char.style.animationDuration = `${Math.random() * 5 + 5}s`;
+                char.style.animationDelay = `${Math.random() * 5}s`;
+                matrixContainer.appendChild(char);
+            }
+        }
+        createMatrix();
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/settings', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            alert('Settings saved: ' + JSON.stringify(result));
+        });
+    </script>
+</body>
+</html>
